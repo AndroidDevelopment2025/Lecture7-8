@@ -1,6 +1,8 @@
 package se.andreaslonn.lecture7_8
 
 import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,18 +12,25 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -128,6 +137,14 @@ fun App(context: Context) {
                     ) {
                         Text("Networking")
                     }
+                    Button(
+                        onClick = {
+                            navController.navigate("sensors")
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Sensors")
+                    }
                     Text("Android")
                 }
             }
@@ -233,6 +250,70 @@ fun App(context: Context) {
                         }
                     ) {
                         Text("Make request")
+                    }
+                }
+            }
+        }
+
+        composable("sensors") {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = {
+                            Text("Sensors")
+                        },
+                        navigationIcon = {
+                            IconButton(
+                                onClick = {
+                                    navController.navigateUp()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back"
+                                )
+                            }
+                        }
+                    )
+                }
+            ) { innerPadding ->
+
+                var resultString by rememberSaveable { mutableStateOf<String?>(null) }
+                var errorString by rememberSaveable { mutableStateOf<String?>(null) }
+
+                Column(
+                    modifier = Modifier.padding(innerPadding).padding(horizontal = 16.dp)
+                ) {
+                    Text("Error: $errorString")
+                    Text(resultString?: "null")
+
+                    val availableSensors = rememberSaveable {
+                        mutableStateListOf<Sensor>()
+                    }
+
+                    // LaunchedEffect used for demonstration purposes
+                    // Usually, you would put this code in the onCreate
+                    LaunchedEffect(0) {
+                        val sensorManager: SensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
+                        val deviceSensors: List<Sensor> = sensorManager.getSensorList(Sensor.TYPE_ALL)
+                        availableSensors.addAll(deviceSensors)
+
+                        val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+
+                        if(accelerometer == null) {
+                            errorString = "No accelerometer"
+                            return@LaunchedEffect
+                        }
+                    }
+
+                    LazyColumn {
+                        items(availableSensors) { sensor ->
+                            ListItem(
+                                headlineContent = { Text(sensor.name, fontWeight = MaterialTheme.typography.headlineMedium.fontWeight) },
+                                supportingContent = { Text(sensor.stringType) }
+                            )
+                        }
                     }
                 }
             }
