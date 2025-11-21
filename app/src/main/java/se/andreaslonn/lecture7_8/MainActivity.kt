@@ -2,6 +2,8 @@ package se.andreaslonn.lecture7_8
 
 import android.content.Context
 import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -305,6 +307,33 @@ fun App(context: Context) {
                             errorString = "No accelerometer"
                             return@LaunchedEffect
                         }
+
+                        val sensorEventListener = object: SensorEventListener {
+                            override fun onAccuracyChanged(
+                                sensor: Sensor?,
+                                accuracy: Int
+                            ) {
+                                println("onAccuracyChanged")
+                            }
+
+                            override fun onSensorChanged(event: SensorEvent?) {
+                                println("onSensorChanged, $event")
+                                resultString = ""
+                                event?.values?.forEach {
+                                    resultString += "$it\n"
+                                }
+                            }
+                        }
+
+                        // onResume
+                        sensorManager.registerListener(
+                            sensorEventListener,
+                            accelerometer,
+                            SensorManager.SENSOR_DELAY_NORMAL
+                        )
+
+                        //onPause
+                        //sensorManager.unregisterListener(sensorEventListener)
                     }
 
                     LazyColumn {
