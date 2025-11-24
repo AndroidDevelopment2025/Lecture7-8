@@ -1,10 +1,16 @@
 package se.andreaslonn.lecture7_8
 
+import android.widget.Toast
+import androidx.core.app.NotificationCompat
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.content.Context.NOTIFICATION_SERVICE
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -146,6 +152,14 @@ fun App(context: Context) {
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Sensors")
+                    }
+                    Button(
+                        onClick = {
+                            navController.navigate("notifications")
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Notifications")
                     }
                     Text("Android")
                 }
@@ -343,6 +357,84 @@ fun App(context: Context) {
                                 supportingContent = { Text(sensor.stringType) }
                             )
                         }
+                    }
+                }
+            }
+        }
+
+        composable("notifications") {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = {
+                            Text("Notifications")
+                        },
+                        navigationIcon = {
+                            IconButton(
+                                onClick = {
+                                    navController.navigateUp()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back"
+                                )
+                            }
+                        }
+                    )
+                }
+            ) { innerPadding ->
+
+                val CHANNEL_ID = "MY_NOTIFICATION_CHANNEL"
+                val NOTIFICATION_ID = 1
+
+                var resultString by rememberSaveable { mutableStateOf<String?>(null) }
+                var errorString by rememberSaveable { mutableStateOf<String?>(null) }
+
+                Column(
+                    modifier = Modifier.padding(innerPadding).padding(horizontal = 16.dp)
+                ) {
+                    Text("Error: $errorString")
+                    Text(resultString?: "null")
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        Button(
+                            onClick = {
+                                // Create the NotificationChannel.
+                                val name = "My Notification Channel"
+                                val descriptionText = "Description of my notification channel"
+                                val importance = NotificationManager.IMPORTANCE_DEFAULT
+                                val mChannel = NotificationChannel(CHANNEL_ID, name, importance)
+                                mChannel.description = descriptionText
+                                // Register the channel with the system. You can't change the importance
+                                // or other notification behaviors after this.
+                                val notificationManager = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+                                notificationManager.createNotificationChannel(mChannel)
+
+                                Toast.makeText(context, "Notification channel created", Toast.LENGTH_SHORT).show()
+                            }
+                        ) {
+                            Text("Create notification channel")
+                        }
+                    }
+
+                    Button(
+                        onClick = {
+                            val notificationBuilder = NotificationCompat.Builder(context, CHANNEL_ID)
+                                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                                .setContentTitle("Title")
+                                .setContentText("Text")
+                                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+
+                            val notification = notificationBuilder.build()
+
+                            val notificationManager = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+                            notificationManager.notify(NOTIFICATION_ID, notification)
+
+                            Toast.makeText(context, "Notification posted", Toast.LENGTH_SHORT).show()
+                        }
+                    ) {
+                        Text("Post notification")
                     }
                 }
             }
