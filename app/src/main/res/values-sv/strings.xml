@@ -1,5 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Lecture7-8</string>
     <string name="datastore">DataStore</string>
-    <string name="networking">Networking</string>
+    <string name="networking">Nätverk</string>
 </resources>
